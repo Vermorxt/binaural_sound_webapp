@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Binaurale Töne Generator</title>
+    <script defer src="script.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body
+    class="bg-gray-900 text-white flex justify-center items-center min-h-screen"
+  >
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
+      <h2 class="text-xl font-bold text-center mb-4">
+        Binaurale Töne Generator
+      </h2>
+      <div class="mb-4">
+        <label class="block text-sm font-medium"
+          >Linkes Ohr Frequenz (Hz)</label
+        >
+        <input
+          id="leftFreq"
+          type="number"
+          value="250"
+          class="w-full p-2 rounded bg-gray-700 text-white"
+        />
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium"
+          >Rechtes Ohr Frequenz (Hz)</label
+        >
+        <input
+          id="rightFreq"
+          type="number"
+          value="260"
+          class="w-full p-2 rounded bg-gray-700 text-white"
+        />
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium">Balance (Links/Rechts)</label>
+        <input
+          id="balance"
+          type="range"
+          min="-1"
+          max="1"
+          step="0.1"
+          value="0"
+          class="w-full"
+        />
+        <p class="text-sm text-gray-400">
+          Balance: <span id="displayBalance">0</span>
+        </p>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium">Lautstärke</label>
+        <input
+          id="volume"
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value="0.5"
+          class="w-full"
+        />
+        <p class="text-sm text-gray-400">
+          Lautstärke: <span id="displayVolume">0.5</span>
+        </p>
+      </div>
+      <p class="text-sm text-gray-400">Aktuelle Frequenzen:</p>
+      <p class="text-sm">
+        Links: <span id="displayLeft">250</span> Hz | Rechts:
+        <span id="displayRight">260</span> Hz
+      </p>
+      <button
+        id="play"
+        class="w-full bg-green-500 hover:bg-green-600 text-white p-2 rounded mt-4"
+      >
+        Play
+      </button>
+      <button
+        id="pause"
+        class="w-full bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded mt-2 hidden"
+      >
+        Pause
+      </button>
+    </div>
+    <script>
+      let audioContext, leftOsc, rightOsc, leftGain, rightGain, merger;
+
+      function startAudio() {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext ||
+            window.webkitAudioContext)();
+          createOscillators();
+        }
+        updateAudio();
+        document.getElementById("play").classList.add("hidden");
+        document.getElementById("pause").classList.remove("hidden");
+      }
+
+      function stopAudio() {
+        if (audioContext) {
+          leftOsc.stop();
+          rightOsc.stop();
+          audioContext.close();
+          audioContext = null;
+        }
+        document.getElementById("play").classList.remove("hidden");
+        document.getElementById("pause").classList.add("hidden");
+      }
+
+      function createOscillators() {
+        leftOsc = audioContext.createOscillator();
+        rightOsc = audioContext.createOscillator();
+        leftGain = audioContext.createGain();
+        rightGain = audioContext.createGain();
+        merger = audioContext.createChannelMerger(2);
+
+        leftOsc.type = "sine";
+        rightOsc.type = "sine";
+
+        leftOsc.connect(leftGain);
+        rightOsc.connect(rightGain);
+        leftGain.connect(merger, 0, 0);
+        rightGain.connect(merger, 0, 1);
+        merger.connect(audioContext.destination);
+
+        let now = audioContext.currentTime;
+        leftOsc.start(now);
+        rightOsc.start(now);
+      }
+
+      function updateAudio() {
+        if (!audioContext) return;
+
+        let leftFreq = parseFloat(document.getElementById("leftFreq").value);
+        let rightFreq = parseFloat(document.getElementById("rightFreq").value);
+        let volume = parseFloat(document.getElementById("volume").value);
+        let balance = parseFloat(document.getElementById("balance").value);
+        let now = audioContext.currentTime;
+
+        // Sanfte Frequenzänderung ohne Knackser
+        leftOsc.frequency.setTargetAtTime(leftFreq, now, 0.05);
+        rightOsc.frequency.setTargetAtTime(rightFreq, now, 0.05);
+
+        // Weiche Balance- und Lautstärkeänderungen
+        let leftVol = volume * (balance <= 0 ? 1 : 1 - balance);
+        let rightVol = volume * (balance >= 0 ? 1 : 1 + balance);
+        leftGain.gain.linearRampToValueAtTime(leftVol / 2, now + 0.05);
+        rightGain.gain.linearRampToValueAtTime(rightVol / 2, now + 0.05);
+
+        document.getElementById("displayLeft").innerText = leftFreq;
+        document.getElementById("displayRight").innerText = rightFreq;
+        document.getElementById("displayBalance").innerText = balance;
+        document.getElementById("displayVolume").innerText = volume.toFixed(2);
+      }
+
+      document.getElementById("play").addEventListener("click", startAudio);
+      document.getElementById("pause").addEventListener("click", stopAudio);
+
+      document.querySelectorAll("input").forEach((input) => {
+        input.addEventListener("input", updateAudio);
+      });
+    </script>
+  </body>
+</html>
