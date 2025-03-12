@@ -39,7 +39,7 @@
         />
       </div>
 
-      <div class="mb-4">
+      <!-- <div class="mb-4">
         <label class="block text-sm font-medium">Lautstärke</label>
         <input
           id="volume"
@@ -63,7 +63,7 @@
           value="0"
           class="w-full"
         />
-      </div>
+      </div> -->
 
       <button
         id="generate"
@@ -72,8 +72,8 @@
         🎵 Play Sound
       </button>
 
-      <audio id="leftAudio" hidden></audio>
-      <audio id="rightAudio" hidden></audio>
+      <audio id="leftAudio" preload="none" muted hidden></audio>
+      <audio id="rightAudio" preload="none" muted hidden></audio>
     </div>
 
     <script type="module" src="/js/create_sound.js"></script>
