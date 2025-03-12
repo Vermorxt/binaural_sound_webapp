@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Binaurale Beats Generator</title>
+    <script src="app.js" defer></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-md text-center">
+      <h1 class="text-2xl font-bold mb-4">Binaurale Beats Generator</h1>
+
+      <div class="mb-4">
+        <label class="block font-medium">Linkes Ohr (Hz)</label>
+        <input
+          type="number"
+          id="leftFreq"
+          value="250"
+          min="20"
+          max="2000"
+          step="1"
+          class="border p-2 w-full text-center"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label class="block font-medium">Rechtes Ohr (Hz)</label>
+        <input
+          type="number"
+          id="rightFreq"
+          value="260"
+          min="20"
+          max="2000"
+          step="1"
+          class="border p-2 w-full text-center"
+        />
+      </div>
+
+      <button id="playButton" class="bg-blue-500 text-white px-4 py-2 rounded">
+        Ton abspielen
+      </button>
+      <button
+        id="stopButton"
+        class="bg-red-500 text-white px-4 py-2 rounded mt-2 hidden"
+      >
+        Stoppen
+      </button>
+    </div>
+  </body>
+</html>

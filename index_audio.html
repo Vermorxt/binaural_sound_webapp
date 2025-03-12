@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Binaurale Töne Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body
+    class="bg-gray-900 text-white flex flex-col justify-center items-center min-h-screen p-4"
+  >
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
+      <h2 class="text-xl font-bold text-center mb-4">
+        Binaurale Töne Generator
+      </h2>
+      <div class="mb-6 relative">
+        <label class="block text-sm font-medium mb-1"
+          >Linkes Ohr Frequenz (Hz)</label
+        >
+        <input
+          id="leftFreq"
+          type="number"
+          value="250"
+          class="w-full p-3 rounded bg-gray-700 text-white"
+        />
+        <div id="leftDrag" class="drag-btn"></div>
+      </div>
+      <div class="mb-6 relative">
+        <label class="block text-sm font-medium mb-1"
+          >Rechtes Ohr Frequenz (Hz)</label
+        >
+        <input
+          id="rightFreq"
+          type="number"
+          value="260"
+          class="w-full p-3 rounded bg-gray-700 text-white"
+        />
+        <div id="rightDrag" class="drag-btn"></div>
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-medium mb-1"
+          >Balance (Links/Rechts)</label
+        >
+        <input
+          id="balance"
+          type="range"
+          min="-1"
+          max="1"
+          step="0.1"
+          value="0"
+          class="w-full"
+        />
+        <p class="text-sm text-gray-400">
+          Balance: <span id="displayBalance">0</span>
+        </p>
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-medium mb-1">Lautstärke</label>
+        <input
+          id="volume"
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value="0.5"
+          class="w-full"
+        />
+        <p class="text-sm text-gray-400">
+          Lautstärke: <span id="displayVolume">0.5</span>
+        </p>
+      </div>
+      <p class="text-sm text-gray-400">Aktuelle Frequenzen:</p>
+      <p class="text-sm mb-4">
+        Links: <span id="displayLeft">250</span> Hz | Rechts:
+        <span id="displayRight">260</span> Hz
+      </p>
+      <button
+        id="testAudio"
+        class="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded mt-2 text-lg"
+      >
+        Test Audio System
+      </button>
+      <button
+        id="play"
+        class="w-full bg-green-500 hover:bg-green-600 text-white p-3 rounded mt-2 text-lg"
+      >
+        Play
+      </button>
+      <button
+        id="pause"
+        class="w-full bg-yellow-500 hover:bg-yellow-600 text-white p-3 rounded mt-2 hidden text-lg"
+      >
+        Pause
+      </button>
+    </div>
+
+    <!-- Fehlerlog-Bereich -->
+    <div class="bg-gray-800 p-4 rounded-lg shadow-lg max-w-lg w-full mt-4">
+      <h3 class="text-lg font-semibold mb-2">Debug-Info:</h3>
+      <div id="deviceInfo" class="text-sm text-yellow-400 mb-3">
+        Geräteinfo wird geladen...
+      </div>
+      <div id="errorLog" class="text-sm text-red-300 bg-gray-900 p-2 rounded">
+        <p class="text-center">Fehlerlog wird initialisiert...</p>
+      </div>
+      <button
+        id="clearLog"
+        class="bg-gray-700 text-white p-2 rounded mt-2 text-sm"
+      >
+        Log löschen
+      </button>
+    </div>
+    <script src="/js/unmute_ios_audio.js"></script>
+    <script type="module" src="/js/script.js"></script>
+  </body>
+</html>

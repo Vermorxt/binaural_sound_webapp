@@ -1,0 +1,40 @@
+.drag-btn {
+  width: 35px;
+  height: 35px;
+  top: 30px;
+  left: auto;
+  right: 5px;
+  background-color: #929292;
+  border-radius: 50%;
+  position: absolute;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  z-index: 10;
+}
+.drag-btn::after {
+  content: "<>";
+  font-size: 12px;
+  color: white;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+button {
+  min-height: 50px;
+}
+#errorLog {
+  max-height: 150px;
+  overflow-y: auto;
+}
+.log-item {
+  border-bottom: 1px solid #444;
+  padding: 5px 0;
+}
