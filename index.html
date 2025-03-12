@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <title>Binaurale Töne Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/css/style.css" />
@@ -16,7 +22,7 @@
       </h2>
 
       <div class="mb-4">
-        <label class="block text-sm font-medium"
+        <label class="block text-sm font-medium mb-1"
           >Frequenz linkes Ohr (Hz)</label
         >
         <input
@@ -28,7 +34,7 @@
       </div>
 
       <div class="mb-4">
-        <label class="block text-sm font-medium"
+        <label class="block text-sm font-medium mb-1"
           >Frequenz rechtes Ohr (Hz)</label
         >
         <input
@@ -52,14 +58,18 @@
         />
       </div>  -->
 
-      <div class="mb-6">
-        <label class="block text-sm font-medium">Balance</label>
+      <div class="mb-6" id="balance-wrapper">
+        <div class="flex justify-between items-center">
+          <label class="block text-sm font-medium">Balance</label>
+          <span id="balance-value" class="text-sm font-bold ml-2">0</span>
+          <!-- 🔥 Wert rechts neben Label -->
+        </div>
         <input
           id="balance"
           type="range"
           min="-1"
           max="1"
-          step="0.01"
+          step="0.1"
           value="0"
           class="w-full"
         />
@@ -67,7 +77,7 @@
 
       <button
         id="generate"
-        class="w-full p-3 mt-8 bg-blue-500 hover:bg-blue-600 rounded text-white font-bold flex justify-center items-center"
+        class="w-full p-3 mt-8 max-w-lg bg-blue-500 hover:bg-blue-600 rounded text-white font-bold flex justify-center items-center"
       >
         🎵 Play Sound
       </button>
@@ -75,6 +85,19 @@
       <audio id="binauralAudio" loop playsinline hidden></audio>
     </div>
 
-    <script type="module" src="/js/create_sound.js"></script>
+    <script>
+      function isIOS() {
+        return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = isIOS()
+          ? "/js/create-audio-ios.js"
+          : "/js/create-audio-web.js";
+        document.body.appendChild(script);
+      });
+    </script>
   </body>
 </html>

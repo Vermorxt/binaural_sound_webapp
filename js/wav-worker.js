@@ -1,3 +1,5 @@
+// wav-worker.js
+
 import * as wavEncoder from "./wav-encoder.min.js";
 
 self.onmessage = async (event) => {

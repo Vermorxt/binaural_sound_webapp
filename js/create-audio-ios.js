@@ -1,3 +1,5 @@
+// create_audio_ios.js
+
 const worker = new Worker("/js/wav-worker.js", { type: "module" });
 
 const button = document.getElementById("generate");
@@ -5,6 +7,9 @@ const audioElement = document.getElementById("binauralAudio");
 const leftFreqInput = document.getElementById("leftFreq");
 const rightFreqInput = document.getElementById("rightFreq");
 const balanceInput = document.getElementById("balance");
+const balanceInputWrapper = document.getElementById("balance-wrapper");
+
+balanceInputWrapper.style.display = "none";
 
 let audioContext = null;
 let keepAliveSource = null; // 🔥 Unsichtbarer Audiostream
@@ -63,7 +68,7 @@ function keepAudioAlive() {
     if (isPlaying && document.visibilityState === "hidden") {
       audioElement.play();
     }
-  }, 5000); // Alle 5 Sekunden sicherstellen, dass es weiterläuft
+  }, 1000); // Alle 5 Sekunden sicherstellen, dass es weiterläuft
 }
 
 // ✅ **Media Session API für Lock Screen Steuerung**
