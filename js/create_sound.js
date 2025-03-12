@@ -1,86 +1,114 @@
 const worker = new Worker("/js/wav-worker.js", { type: "module" });
 
 const button = document.getElementById("generate");
-const leftAudio = document.getElementById("leftAudio");
-const rightAudio = document.getElementById("rightAudio");
+const audioElement = document.getElementById("binauralAudio");
 const leftFreqInput = document.getElementById("leftFreq");
 const rightFreqInput = document.getElementById("rightFreq");
-// const volumeInput = document.getElementById("volume");
-// const balanceInput = document.getElementById("balance");
+const balanceInput = document.getElementById("balance");
 
-let currentLeftFreq = parseInt(leftFreqInput.value);
-let currentRightFreq = parseInt(rightFreqInput.value);
+let audioContext = null;
+let keepAliveSource = null; // 🔥 Unsichtbarer Audiostream
 let isPlaying = false;
 
+// ✅ **Web Audio API nur für Balance + Hintergrund-Trick**
+function initializeAudioContext() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  // 🔥 **Leeren Sound erzeugen, um iOS im Hintergrund aktiv zu halten**
+  if (!keepAliveSource) {
+    keepAliveSource = audioContext.createBufferSource();
+    const buffer = audioContext.createBuffer(1, 1, 22050);
+    keepAliveSource.buffer = buffer;
+    keepAliveSource.loop = true;
+    keepAliveSource.connect(audioContext.destination);
+    keepAliveSource.start(0);
+  }
+}
+
+// ✅ **Lock Screen Safe Audio**
 function generateAudio() {
   const leftFreq = parseInt(leftFreqInput.value);
   const rightFreq = parseInt(rightFreqInput.value);
-  // const volume = parseFloat(volumeInput.value);
-  // const balance = parseFloat(balanceInput.value);
 
-  button.innerHTML = `<div class='flex items-center justify-center'>
-    <svg class='animate-spin h-5 w-5 mr-2 text-white' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
-      <circle cx='12' cy='12' r='10' stroke-opacity='0.25'></circle>
-      <path d='M12 6v6l4 2' stroke-opacity='0.75'></path>
-    </svg> Generiert...
-  </div>`;
+  button.innerHTML = "Generiert...";
   button.disabled = true;
-  button.classList.add("bg-gray-600", "cursor-not-allowed");
 
   worker.postMessage({ leftFreq, rightFreq });
 
   worker.onmessage = (event) => {
-    const { leftArrayBuffer, rightArrayBuffer } = event.data;
+    const { stereoArrayBuffer } = event.data;
+    const stereoBlob = new Blob([stereoArrayBuffer], { type: "audio/wav" });
 
-    const leftBlob = new Blob([leftArrayBuffer], { type: "audio/wav" });
-    const rightBlob = new Blob([rightArrayBuffer], { type: "audio/wav" });
-
-    leftAudio.src = URL.createObjectURL(leftBlob);
-    rightAudio.src = URL.createObjectURL(rightBlob);
-
-    // leftAudio.volume = volume;
-    // rightAudio.volume = volume;
-
-    // Media Session API entfernen (verhindert Anzeige auf Sperrbildschirm)
-    if ("mediaSession" in navigator) {
-      navigator.mediaSession.metadata = null;
+    if (!audioElement.src || audioElement.src.startsWith("blob:")) {
+      audioElement.src = URL.createObjectURL(stereoBlob);
     }
 
     button.innerHTML = isPlaying ? "⏸ Pause" : "🎵 Play Sound";
     button.disabled = false;
-    button.classList.remove("bg-gray-600", "cursor-not-allowed");
 
     if (isPlaying) {
-      leftAudio.play();
-      rightAudio.play();
+      audioElement.muted = false;
+      audioElement.play();
+      keepAudioAlive(); // 🔥 Hintergrund-Audio aktivieren
+      setupMediaSession();
     }
   };
 }
 
+// ✅ **iOS Fix für Lock Screen: Regelmäßiges Play() erzwingen**
+function keepAudioAlive() {
+  setInterval(() => {
+    if (isPlaying && document.visibilityState === "hidden") {
+      audioElement.play();
+    }
+  }, 5000); // Alle 5 Sekunden sicherstellen, dass es weiterläuft
+}
+
+// ✅ **Media Session API für Lock Screen Steuerung**
+function setupMediaSession() {
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: "Binaurale Frequenzen",
+      artist: "BrainSync",
+      album: "Frequenz Generator",
+      artwork: [{ src: "/icon.png", sizes: "512x512", type: "image/png" }],
+    });
+
+    navigator.mediaSession.setActionHandler("play", () => {
+      audioElement.play();
+      isPlaying = true;
+      button.innerHTML = "⏸ Pause";
+    });
+
+    navigator.mediaSession.setActionHandler("pause", () => {
+      audioElement.pause();
+      isPlaying = false;
+      button.innerHTML = "🎵 Play Sound";
+    });
+  }
+}
+
+// 🎵 **Button für Play/Pause**
 button.addEventListener("click", () => {
   if (isPlaying) {
-    leftAudio.pause();
-    rightAudio.pause();
+    audioElement.pause();
     button.innerHTML = "🎵 Play Sound";
   } else {
-    leftAudio.muted = false; // Stummschaltung entfernen
-    rightAudio.muted = false;
+    initializeAudioContext();
     generateAudio();
+    audioElement.muted = false;
+    audioElement.play();
+    keepAudioAlive(); // 🔥 iOS Fix aktivieren
+    setupMediaSession();
   }
   isPlaying = !isPlaying;
 });
 
-// Überwachung von Frequenzänderungen
+// 🎵 **Frequenzänderung live übernehmen**
 function handleFrequencyChange() {
-  const newLeftFreq = parseInt(leftFreqInput.value);
-  const newRightFreq = parseInt(rightFreqInput.value);
-
-  if (
-    (newLeftFreq !== currentLeftFreq || newRightFreq !== currentRightFreq) &&
-    isPlaying
-  ) {
-    currentLeftFreq = newLeftFreq;
-    currentRightFreq = newRightFreq;
+  if (isPlaying) {
     generateAudio();
   }
 }

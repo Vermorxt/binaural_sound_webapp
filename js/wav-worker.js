@@ -6,31 +6,21 @@ self.onmessage = async (event) => {
   const totalDuration = 60 * 15;
   const sampleRate = 44100;
 
-  const leftWav = await generateExtendedWav(
+  const stereoWav = await generatePureStereoWav(
     leftFreq,
-    duration,
-    sampleRate,
-    totalDuration
-  );
-  const rightWav = await generateExtendedWav(
     rightFreq,
     duration,
     sampleRate,
     totalDuration
   );
 
-  // Konvertiere Blobs in ArrayBuffer, um sie an den Hauptthread zu senden
-  const leftArrayBuffer = await leftWav.arrayBuffer();
-  const rightArrayBuffer = await rightWav.arrayBuffer();
-
-  self.postMessage({ leftArrayBuffer, rightArrayBuffer }, [
-    leftArrayBuffer,
-    rightArrayBuffer,
-  ]);
+  const stereoArrayBuffer = await stereoWav.arrayBuffer();
+  self.postMessage({ stereoArrayBuffer }, [stereoArrayBuffer]);
 };
 
-async function generateExtendedWav(
-  frequency,
+async function generatePureStereoWav(
+  leftFreq,
+  rightFreq,
   duration,
   sampleRate,
   totalDuration
@@ -39,23 +29,19 @@ async function generateExtendedWav(
   const lengthPerChunk = chunkDuration * sampleRate;
   const totalChunks = totalDuration / chunkDuration;
   const fullLength = totalChunks * lengthPerChunk;
-  const channelData = new Float32Array(fullLength);
 
-  for (let i = 0; i < lengthPerChunk; i++) {
+  const leftChannel = new Float32Array(fullLength);
+  const rightChannel = new Float32Array(fullLength);
+
+  for (let i = 0; i < fullLength; i++) {
     const t = i / sampleRate;
-    channelData[i] = Math.sin(2 * Math.PI * frequency * t) * 0.5;
-  }
-
-  for (let i = 1; i < totalChunks; i++) {
-    channelData.set(
-      channelData.subarray(0, lengthPerChunk),
-      i * lengthPerChunk
-    );
+    leftChannel[i] = Math.sin(2 * Math.PI * leftFreq * t); // 100% linker Kanal
+    rightChannel[i] = Math.sin(2 * Math.PI * rightFreq * t); // 100% rechter Kanal
   }
 
   const wavData = await wavEncoder.encode({
     sampleRate: sampleRate,
-    channelData: [channelData],
+    channelData: [leftChannel, rightChannel], // Klares Stereo
   });
 
   return new Blob([wavData], { type: "audio/wav" });
